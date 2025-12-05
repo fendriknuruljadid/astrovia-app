@@ -1,6 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react"
 
 import { LoginForm } from "@/app/login-form"
+import Image from "next/image"
 
 export default function LoginPage() {
   return (
@@ -15,10 +16,20 @@ export default function LoginPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-center">
           <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
-            Astrovia AI.
+          <Image
+              className='dark:hidden'
+              src="/full-logo-light.svg"
+              alt="Astrovia Logo"
+              width={150}
+              height={50}
+            />
+            <Image
+              className='hidden dark:block'
+              src="/full-logo-dark.svg"
+              alt="Astrovia Logo"
+              width={150}
+              height={50}
+            />
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

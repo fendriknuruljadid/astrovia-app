@@ -49,7 +49,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Astro Nova */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                  <Card className="relative cursor-pointer hover:shadow-xl transition">
+                  <Card className="dark:bg-gray-800 relative cursor-pointer hover:shadow-xl transition">
                     {/* Label Favorit */}
                     <div className="absolute top-2 right-2 bg-yellow-400 text-white rounded-full p-1 shadow-md">
                       <StarIcon className="w-4 h-4" />
@@ -72,14 +72,14 @@ export default function DashboardPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Button className="w-full mt-2">Pilih Agen</Button>
+                      <Button className="w-full mt-2 dark:text-white">Pilih Agen</Button>
                     </CardContent>
                   </Card>
                 </motion.div>
 
                 {/* Astro Zenith */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                  <Card className="relative cursor-pointer hover:shadow-xl transition">
+                  <Card className="dark:bg-gray-800 relative cursor-pointer hover:shadow-xl transition">
                     {/* Label Favorit */}
                     <div className="absolute top-2 right-2 bg-yellow-400 text-white rounded-full p-1 shadow-md">
                       <StarIcon className="w-4 h-4" />

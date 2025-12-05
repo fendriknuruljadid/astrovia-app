@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { ThemeContext } from '@/contexts/theme-context';
+import { signOut } from "next-auth/react"
 import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/app/components/ui/drawer';
 // import { getWithSignature } from '@/utils/api';
 import { toSlug } from '@/utils/slugify';
@@ -59,19 +60,29 @@ export function NavbarClient() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center text-base font-semibold">
-            <h1 className='text-upper font-bold text-xs lg:text-xl text-blue-900'>ASTROVIA AI</h1>
+            <Image
+              className='dark:hidden'
+              src="/full-logo-light.svg"
+              alt="Astrovia Logo"
+              width={150}
+              height={50}
+            />
+            <Image
+              className='hidden dark:block'
+              src="/full-logo-dark.svg"
+              alt="Astrovia Logo"
+              width={150}
+              height={50}
+            />
           </Link>
           {/* Theme toggle */}
           <div className="flex items-center gap-4">
           {/* <Button variant="ghost" size="icon" onClick={toggleTheme} className="bg-white rounded-full font-bold h-9 w-9 cursor-pointer">
               {theme === 'dark' ? <Sun className="h-4 w-4 " /> : <Moon className="h-4 w-4" />}
             </Button> */}
-            <Link href="/log-in">  <Button  variant="outline" type="button" className="bg-white px-4 rounded-lg pt-2 font-bold w-auto cursor-pointer">
-              Log In
-            </Button></Link>
-            <Link href="/log-in"> <Button  variant="outline" type="button" className="bg-white px-4 rounded-lg pt-2 font-bold w-auto cursor-pointer">
-              Register
-            </Button></Link>
+            <Button  onClick={() => signOut({ callbackUrl: "/" })}  variant="outline" type="button" className="bg-white px-4 rounded-lg pt-2 font-bold w-auto cursor-pointer">
+              Log Out
+            </Button>
           </div>
         </div>
       </div>

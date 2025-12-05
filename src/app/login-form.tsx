@@ -21,9 +21,9 @@ export function LoginForm({
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">Masuk ke Astrovia AI</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+           Masukkan email anda untuk melanjutkan
           </p>
         </div>
         <Field>
@@ -35,9 +35,9 @@ export function LoginForm({
               height={20}
               priority
             />
-            Continue with Google
+            Lanjutkan dengan Google
           </Button>
-          <Button onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })} variant="outline" type="button">
+          {/* <Button onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })} variant="outline" type="button">
             <Image
               src="/microsoft.svg"
               alt="Microsoft"
@@ -46,17 +46,17 @@ export function LoginForm({
               priority
             />
             Continue with Microsoft
-          </Button>
+          </Button> */}
          
         </Field>
-        <FieldSeparator>OR</FieldSeparator>
+        {/* <FieldSeparator>OR</FieldSeparator>
         
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="Email Address" required />
-        </Field>
+          <Input id="email" type="email" placeholder="Alamat email" required />
+        </Field> */}
         <Field>
-          <Button type="submit">Continue</Button>
+          <Button type="button" onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="dark:text-white">Lanjutkan</Button>
         </Field>
       </FieldGroup>
     </form>
