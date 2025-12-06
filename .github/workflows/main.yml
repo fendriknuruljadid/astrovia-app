@@ -33,15 +33,3 @@ jobs:
         cache-from: type=registry,ref=fendriknj/astrovia-app:latest
         cache-to: type=inline
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_SSH_USER }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        timeout: "300s"
-        command_timeout: "300s"
-        script: |
-          docker pull fendriknj/astrovia-app:latest
-          docker service update --detach=true --with-registry-auth --image fendriknj/astrovia-app:${TAG} astrovia_app
-
