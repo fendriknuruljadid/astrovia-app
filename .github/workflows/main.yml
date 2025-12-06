@@ -2,35 +2,46 @@ name: Deploy Astrovia App
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout source
       uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
+    - name: Log into Docker Hub
+      uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push image
+    - name: Set Docker image tag
+      id: vars
+      run: echo "TAG=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
+    - name: Build and push images (With Cache)
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-        tags: fendriknj/astrovia-app:latest
+        tags: |
+          fendriknj/astrovia-app:latest
+          fendriknj/astrovia-app:${{ env.TAG }}
+        cache-from: type=registry,ref=fendriknj/astrovia-app:latest
+        cache-to: type=inline
 
-    - name: SSH to Server and redeploy
+    - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_SSH_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
+        timeout: "300s"
+        command_timeout: "300s"
         script: |
           docker pull fendriknj/astrovia-app:latest
-          docker service update --with-registry-auth --force astrovia_app
+          docker service update --with-registry-auth --force --update-failure-action=rollback astrovia_app
+          docker image prune -af
