@@ -43,5 +43,5 @@ jobs:
         command_timeout: "300s"
         script: |
           docker pull fendriknj/astrovia-app:latest
-          docker service update --with-registry-auth --force --update-failure-action=rollback astrovia_app
-          docker image prune -af
+          docker service update --detach=true --with-registry-auth --image fendriknj/astrovia-app:${TAG} astrovia_app
+
