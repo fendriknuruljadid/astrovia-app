@@ -27,7 +27,7 @@ export function LoginForm({
           </p>
         </div>
         <Field>
-          <Button onClick={() => signIn("google", { callbackUrl: "/dashboard" })}  variant="outline" type="button">
+          <Button onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="cursor-pointer" variant="outline" type="button">
             <Image
               src="/google.svg"
               alt="Microsoft"
@@ -56,7 +56,7 @@ export function LoginForm({
           <Input id="email" type="email" placeholder="Alamat email" required />
         </Field> */}
         <Field>
-          <Button type="button" onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="dark:text-white">Lanjutkan</Button>
+          <Button type="button" onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="cursor-pointer dark:text-white">Lanjutkan</Button>
         </Field>
       </FieldGroup>
     </form>

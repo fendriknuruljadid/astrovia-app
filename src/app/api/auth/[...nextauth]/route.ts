@@ -1,5 +1,5 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { postWithSignature } from "@/utils/api";
 import type { ApiResponse } from "@/types/api";
 
@@ -12,40 +12,16 @@ interface LoginData {
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider({
-      name: "Local Login",
-      credentials: {
-        email: { label: "Email", type: "text", placeholder: "you@example.com" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        try {
-          const url = `${process.env.API_URL}/auth/generate-token-cms`;
-          const data = await postWithSignature<ApiResponse<LoginData>>(url, {
-            email: credentials?.email,
-            password: credentials?.password,
-            provider: "local",
-            oauthToken: "",
-          });
-
-          if (!data?.success) {
-            throw new Error(data?.message || "Login failed");
-          }
-
-          return {
-            name: credentials?.email?.split("@")[0],
-            email: credentials?.email,
-            appToken: data?.data?.access_token,
-          } as unknown as User;
-        } catch (err) {
-          if (err instanceof Error) {
-            console.error("Local login error:", err.message);
-            throw new Error(err.message || "An error occurred during login");
-          } else {
-            console.error("Unexpected error:", err);
-            throw new Error("An unknown error occurred");
-          }
-        }
+    
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
       },
     }),
 
@@ -54,42 +30,75 @@ export const authOptions: NextAuthOptions = {
 
   cookies: {
     sessionToken: {
-      name: "cms.session-token",
+      name: "app.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
         secure: true,
-        domain: "cms.plutonia.ai",
+        domain: "app.astrovia.id",
       },
     },
     csrfToken: {
-      name: "cms.csrf-token",
+      name: "app.csrf-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
         secure: true,
-        domain: "cms.plutonia.ai",
+        domain: "app.astrovia.id",
       },
     },
     callbackUrl: {
-      name: "cms.callback-url",
+      name: "app.callback-url",
       options: {
         sameSite: "lax",
         path: "/",
         secure: true,
-        domain: "cms.plutonia.ai",
+        domain: "app.astrovia.id",
       },
     },
   },
-
+  // cookies: {
+  //   sessionToken: {
+  //     name: process.env.NODE_ENV === "production" 
+  //       ? "__Host-next-auth.session-token"
+  //       : "next-auth.session-token",
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: process.env.NODE_ENV === "production",
+  //     },
+  //   },
+  // },
+  
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       try {
         // When logging in for the first time (local login)
         if (user && "appToken" in user) {
           token.appToken = (user as User & { appToken?: string }).appToken;
+        }
+        if (account?.access_token && user?.email) {
+          const url = `${process.env.API_URL}/generate-token`;
+          
+          console.log(account);
+          try {
+            const result = await postWithSignature<ApiResponse<LoginData>>(url, {
+              email: user.email,
+              provider: account.provider,
+              oauthToken: account.access_token,
+            });
+            console.log(result);
+            token.appToken = result.data?.access_token;
+          } catch (error) {
+            if (error instanceof Error) {
+              console.error("Failed to retrieve app token:", error.message);
+            } else {
+              console.error("Unknown error in JWT callback:", error);
+            }
+          }
         }
         return token;
       } catch (error) {
