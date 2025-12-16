@@ -28,51 +28,51 @@ export const authOptions: NextAuthOptions = {
     
   ],
 
-  cookies: {
-    sessionToken: {
-      name: "app.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-        domain: "app.astrovia.id",
-      },
-    },
-    csrfToken: {
-      name: "app.csrf-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-        domain: "app.astrovia.id",
-      },
-    },
-    callbackUrl: {
-      name: "app.callback-url",
-      options: {
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-        domain: "app.astrovia.id",
-      },
-    },
-  },
   // cookies: {
   //   sessionToken: {
-  //     name: process.env.NODE_ENV === "production" 
-  //       ? "__Host-next-auth.session-token"
-  //       : "next-auth.session-token",
+  //     name: "app.session-token",
   //     options: {
   //       httpOnly: true,
   //       sameSite: "lax",
   //       path: "/",
-  //       secure: process.env.NODE_ENV === "production",
+  //       secure: true,
+  //       domain: "app.astrovia.id",
+  //     },
+  //   },
+  //   csrfToken: {
+  //     name: "app.csrf-token",
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: true,
+  //       domain: "app.astrovia.id",
+  //     },
+  //   },
+  //   callbackUrl: {
+  //     name: "app.callback-url",
+  //     options: {
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: true,
+  //       domain: "app.astrovia.id",
   //     },
   //   },
   // },
-  
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" 
+        ? "__Host-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
   callbacks: {
     async jwt({ token, user, account }) {
       try {
