@@ -87,7 +87,7 @@ export default function DashboardPage() {
 
                     <CardHeader className="items-center text-center">
                       <Image
-                        src="/astro.png"
+                        src="https://media.astrovia.id/astro-zenith.png"
                         alt="Astro Zenith"
                         width={80}
                         height={80}

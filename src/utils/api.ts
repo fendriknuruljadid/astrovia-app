@@ -102,8 +102,8 @@ export const getWithSignature = async <T = unknown>(
   // console.log(appToken);
   const response: AxiosResponse<T> = await apiClient.get(url, {
     headers: {
-      "X-TIMESTAMP": timestamp,
-      "X-SIGNATURE": hmac,
+      "X-Timestamp": timestamp,
+      "X-Signature": hmac,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
     },
@@ -127,8 +127,8 @@ export const getWithSignature = async <T = unknown>(
 
 //   const response: AxiosResponse<T> = await apiClient.post(url, data, {
 //     headers: {
-//       "X-TIMESTAMP": timestamp,
-//       "X-SIGNATURE": hmac,
+//       "X-Timestamp": timestamp,
+//       "X-Signature": hmac,
 //       "X-ORIGIN": origin ?? "",
 //       ...(appToken && { Authorization: `Bearer ${appToken}` }),
 //       "Content-Type": "application/json",
@@ -152,14 +152,14 @@ export const postWithSignature = async <T = unknown>(
 
   const response: AxiosResponse<T> = await apiClient.post(url, data, {
     headers: {
-      "X-TIMESTAMP": timestamp,
-      "X-SIGNATURE": hmac,
+      "X-Timestamp": timestamp,
+      "X-Signature": hmac,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }), //biarkan axios set otomatis kalau FormData
     },
   });
-
+  console.log(response);
   return response.data;
 };
 
@@ -178,8 +178,8 @@ export const putWithSignature = async <T = unknown>(
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
   const response: AxiosResponse<T> = await apiClient.put(url, data, {
     headers: {
-      "X-TIMESTAMP": timestamp,
-      "X-SIGNATURE": hmac,
+      "X-Timestamp": timestamp,
+      "X-Signature": hmac,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -204,8 +204,8 @@ export const patchWithSignature = async <T = unknown>(
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
   const response: AxiosResponse<T> = await apiClient.patch(url, data, {
     headers: {
-      "X-TIMESTAMP": timestamp,
-      "X-SIGNATURE": hmac,
+      "X-Timestamp": timestamp,
+      "X-Signature": hmac,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -228,8 +228,8 @@ export const deleteWithSignature = async <T = unknown>(
 
   const response: AxiosResponse<T> = await apiClient.delete(url, {
     headers: {
-      "X-TIMESTAMP": timestamp,
-      "X-SIGNATURE": hmac,
+      "X-Timestamp": timestamp,
+      "X-Signature": hmac,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
     },

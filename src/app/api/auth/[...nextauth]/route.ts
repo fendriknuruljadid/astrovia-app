@@ -73,51 +73,95 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  callbacks: {
-    async jwt({ token, user, account }) {
-      try {
-        // When logging in for the first time (local login)
-        if (user && "appToken" in user) {
-          token.appToken = (user as User & { appToken?: string }).appToken;
-        }
-        if (account?.access_token && user?.email) {
-          const url = `${process.env.API_URL}/generate-token`;
+  // callbacks: {
+  //   async jwt({ token, user, account }) {
+  //     try {
+  //       // When logging in for the first time (local login)
+  //       if (user && "appToken" in user) {
+  //         token.appToken = (user as User & { appToken?: string }).appToken;
+  //       }
+  //       if (account?.access_token && user?.email) {
+  //         const url = `${process.env.API_URL}/generate-token`;
           
-          console.log(account);
-          try {
-            const result = await postWithSignature<ApiResponse<LoginData>>(url, {
+  //         console.log(account);
+  //         try {
+  //           const result = await postWithSignature<ApiResponse<LoginData>>(url, {
+  //             email: user.email,
+  //             provider: account.provider,
+  //             oauthToken: account.access_token,
+  //           });
+  //           console.log(result);
+  //           token.appToken = result.data?.access_token;
+  //         } catch (error) {
+  //           if (error instanceof Error) {
+  //             console.error("Failed to retrieve app token:", error.message);
+  //           } else {
+  //             console.error("Unknown error in JWT callback:", error);
+  //           }
+  //         }
+  //       }
+  //       return token;
+  //     } catch (error) {
+  //       if (error instanceof Error) {
+  //         console.error("JWT callback error:", error.message);
+  //       } else {
+  //         console.error("Unexpected JWT callback error:", error);
+  //       }
+  //       return token; // always return the token to prevent session issues
+  //     }
+  //   },
+
+  //   async session({ session, token }) {
+  //     if (token?.appToken) {
+  //       session.appToken = token.appToken;
+  //     }
+  //     return session;
+  //   },
+  // },
+  callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && account.access_token && user.email) {
+        try {
+          const result = await postWithSignature<ApiResponse<LoginData>>(
+            `${process.env.API_URL}/generate-token`,
+            {
               email: user.email,
               provider: account.provider,
               oauthToken: account.access_token,
-            });
-            console.log(result);
-            token.appToken = result.data?.access_token;
-          } catch (error) {
-            if (error instanceof Error) {
-              console.error("Failed to retrieve app token:", error.message);
-            } else {
-              console.error("Unknown error in JWT callback:", error);
             }
+          );
+  
+          if (!result?.data?.access_token) {
+            console.error("App token empty");
+            return false; // BLOK LOGIN
           }
+  
+          // inject sementara ke user
+          (user as any).appToken = result.data.access_token;
+          return true;
+        } catch (err) {
+          console.error("Generate token failed:", err);
+          return false; // BLOK LOGIN
         }
-        return token;
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error("JWT callback error:", error.message);
-        } else {
-          console.error("Unexpected JWT callback error:", error);
-        }
-        return token; // always return the token to prevent session issues
       }
+  
+      return true;
     },
-
+  
+    async jwt({ token, user }) {
+      if (user && (user as any).appToken) {
+        token.appToken = (user as any).appToken;
+      }
+      return token;
+    },
+  
     async session({ session, token }) {
-      if (token?.appToken) {
+      if (token.appToken) {
         session.appToken = token.appToken;
       }
       return session;
     },
-  },
+  }
 };
 
 const handler = NextAuth(authOptions);
