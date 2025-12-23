@@ -29,6 +29,13 @@ import {
   Scissors,
 } from "lucide-react"
 
+type Project = {
+  id: string
+  title: string
+  thumbnail: string
+  type: string
+  createdAt: string
+}
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -56,7 +63,8 @@ const stats = [
   { label: "Total Shorts", value: 87, icon: SquareScissorsIcon },
 ]
 
-const projects = []
+const projects: Project[] = []
+
 
 /* =========================================================
    PAGE

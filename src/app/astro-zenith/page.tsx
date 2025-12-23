@@ -60,35 +60,7 @@ const projects = [
     thumbnail: "/thumb-3.jpg",
     type: "Auto Clips",
     createdAt: "2025-01-09",
-  },
-  {
-    id: "3",
-    title: "Motivational Talk 2025",
-    thumbnail: "/thumb-3.jpg",
-    type: "Auto Clips",
-    createdAt: "2025-01-09",
-  },
-  {
-    id: "3",
-    title: "Motivational Talk 2025",
-    thumbnail: "/thumb-3.jpg",
-    type: "Auto Clips",
-    createdAt: "2025-01-09",
-  },
-  {
-    id: "3",
-    title: "Motivational Talk 2025",
-    thumbnail: "/thumb-3.jpg",
-    type: "Auto Clips",
-    createdAt: "2025-01-09",
-  },
-  {
-    id: "3",
-    title: "Motivational Talk 2025",
-    thumbnail: "/thumb-3.jpg",
-    type: "Auto Clips",
-    createdAt: "2025-01-09",
-  },
+  }
 ]
 
 const stats = [

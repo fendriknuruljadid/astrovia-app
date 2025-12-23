@@ -15,7 +15,8 @@ declare module "next-auth" {
   }
 
   interface User extends DefaultUser {
-    accessToken?: string
+    accessToken?: string,
+    appToken?: string;
   }
 }
 

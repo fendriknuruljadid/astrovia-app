@@ -137,7 +137,7 @@ export const authOptions: NextAuthOptions = {
           }
   
           // inject sementara ke user
-          (user as any).appToken = result.data.access_token;
+          user.appToken = result.data.access_token;
           return true;
         } catch (err) {
           console.error("Generate token failed:", err);
@@ -149,8 +149,8 @@ export const authOptions: NextAuthOptions = {
     },
   
     async jwt({ token, user }) {
-      if (user && (user as any).appToken) {
-        token.appToken = (user as any).appToken;
+      if (user && user.appToken) {
+        token.appToken = user.appToken;
       }
       return token;
     },
