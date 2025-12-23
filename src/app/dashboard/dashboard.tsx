@@ -4,6 +4,8 @@ import { motion } from "framer-motion"
 import { RocketIcon, SparklesIcon, StarIcon, CheckCircle2Icon } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/app/components/ui/button"
+import { ApiResponse } from "@/types/api";
+import { useEffect, useState } from "react"
 import {
   Card,
   CardContent,
@@ -17,8 +19,91 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs"
+import Link from "next/link"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/components/ui/dialog"
+
+
+interface Agent {
+  id: string
+  name: string
+  description: string
+  logo: string
+  url: string
+  has_access: boolean
+  expired: boolean
+  expired_at: string | null
+}
+
+
+
+const AgentSkeleton = () => (
+  <Card className="dark:bg-gray-800 animate-pulse">
+    <CardHeader className="items-center text-center gap-3">
+      <div className="h-20 w-20 rounded-full bg-gray-300 dark:bg-gray-700" />
+      <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded" />
+      <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-3 w-4/5 bg-gray-200 dark:bg-gray-700 rounded" />
+    </CardHeader>
+    <CardContent>
+      <div className="h-9 w-full bg-gray-300 dark:bg-gray-700 rounded" />
+    </CardContent>
+  </Card>
+)
+
 
 export default function DashboardPage() {
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loading, setLoading] = useState(true)
+  const fetchAgents = async () => {
+    try {
+      const res = await fetch("/api/proxy/agents")
+      const json: ApiResponse<Agent[]> = await res.json()
+  
+      if (!json.status) throw new Error(json.message)
+    
+      setAgents(json.data ?? [])
+           
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!loading && agents.length > 0) {
+      const accessMap = agents.reduce((acc, agent) => {
+        acc[agent.url] = {
+          has_access: agent.has_access,
+          expired: agent.expired,
+        }
+        return acc
+      }, {} as Record<string, { has_access: boolean; expired: boolean }>)
+  
+      const prev = document.cookie
+        .split("; ")
+        .find(c => c.startsWith("agent_access="))
+
+      if (!prev || decodeURIComponent(prev.split("=")[1]) !== JSON.stringify(accessMap)) {
+        document.cookie = `agent_access=${encodeURIComponent(
+          JSON.stringify(accessMap)
+        )}; path=/; max-age=300`
+      }
+    }
+  }, [loading, agents])
+  
+  useEffect(() => {
+    fetchAgents()
+  }, [])
+  
+
   return (
     <div className="pb-[80px] flex w-full max-w-full flex-col gap-6">
       {/* Ucapan Selamat Datang */}
@@ -32,8 +117,8 @@ export default function DashboardPage() {
       {/* Tabs */}
       <Tabs defaultValue="agent" className="w-full">
         <TabsList>
-          <TabsTrigger value="agent">Astro Agent</TabsTrigger>
-          <TabsTrigger value="riwayat">Riwayat Pembayaran</TabsTrigger>
+          <TabsTrigger value="agent" className="cursor-pointer">Astro Agent</TabsTrigger>
+          <TabsTrigger value="riwayat" className="cursor-pointer">Riwayat Pembayaran</TabsTrigger>
         </TabsList>
 
         {/* Tab Agent */}
@@ -46,70 +131,115 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Astro Nova */}
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                  <Card className="dark:bg-gray-800 relative cursor-pointer hover:shadow-xl transition">
-                    {/* Label Favorit */}
-                    <div className="absolute top-2 right-2 bg-yellow-400 text-white rounded-full p-1 shadow-md">
-                      <StarIcon className="w-4 h-4" />
-                    </div>
+              {loading ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {Array.from({ length: 4 }).map((_, i) => (
+                   <AgentSkeleton key={i} />
+                 ))}
+               </div>
+              ) : agents.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada agen tersedia</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {agents.map((agent) => (
+                    <motion.div
+                      key={agent.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Card className="dark:bg-gray-800 relative hover:shadow-xl transition">
+                        {/* Badge akses */}
+                        {agent.has_access && !agent.expired && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1 shadow-md">
+                            <CheckCircle2Icon className="w-4 h-4" />
+                          </div>
+                        )}
 
-                    <CardHeader className="items-center text-center">
-                      <Image
-                        src="/astro.png"
-                        alt="Astro Nova"
-                        width={80}
-                        height={80}
-                        className="mx-auto mb-2"
-                      />
-                      <div className="flex justify-center items-center gap-2">
-                        <CardTitle>Astro Nova</CardTitle>
-                        <CheckCircle2Icon className="w-5 h-5 text-green-500" />
-                      </div>
-                      <CardDescription>
-                        Agen AI penuh semangat dengan kemampuan eksplorasi tinggi 🚀
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button className="w-full mt-2 dark:text-white">Pilih Agen</Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                        <CardHeader className="items-center text-center">
+                          <Image
+                            src={agent.logo}
+                            alt={agent.name}
+                            width={80}
+                            height={80}
+                            className="mx-auto mb-2"
+                          />
 
-                {/* Astro Zenith */}
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                  <Card className="dark:bg-gray-800 relative cursor-pointer hover:shadow-xl transition">
-                    {/* Label Favorit */}
-                    <div className="absolute top-2 right-2 bg-yellow-400 text-white rounded-full p-1 shadow-md">
-                      <StarIcon className="w-4 h-4" />
-                    </div>
+                          <CardTitle>{agent.name}</CardTitle>
 
-                    <CardHeader className="items-center text-center">
-                      <Image
-                        src="https://media.astrovia.id/astro-zenith.png"
-                        alt="Astro Zenith"
-                        width={80}
-                        height={80}
-                        className="mx-auto mb-2"
-                      />
-                      <div className="flex justify-center items-center gap-2">
-                        <CardTitle>Astro Zenith</CardTitle>
-                        <CheckCircle2Icon className="w-5 h-5 text-green-500" />
-                      </div>
-                      <CardDescription>
-                        Agen AI bijak dan tenang, cocok untuk solusi mendalam ✨
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button className="w-full mt-2" variant="secondary">
-                        Pilih Agen
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-               
-              </div>
+                          <CardDescription className="text-sm line-clamp-3">
+                            {agent.description}
+                          </CardDescription>
+                          {/* Badge Status */}
+                          {agent.has_access && !agent.expired && (
+                            <span className="absolute top-2 left-2 text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                              Active
+                            </span>
+                          )}
+
+                          {agent.has_access && agent.expired && (
+                            <span className="absolute top-2 left-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                              Expired
+                            </span>
+                          )}
+
+                          {!agent.has_access && (
+                            <span className="absolute top-2 left-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                              Activate Now
+                            </span>
+                          )}
+
+                        </CardHeader>
+
+                        <CardContent className="flex flex-col gap-2">
+                          {/* Tombol utama */}
+                          {agent.has_access ? (
+                            <Button asChild className="w-full bg-green-800">
+                              <Link href={`/${agent.url}`}>
+                                Buka Agen
+                              </Link>
+                            </Button>
+                          ) : (
+                            <Button asChild className="w-full">
+                              <Link href={`/subscribe/${agent.id}`}>
+                                Berlangganan
+                              </Link>
+                            </Button>
+                          )}
+
+                          {/* Tombol Detail */}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" className="w-full cursor-pointer">
+                                Detail
+                              </Button>
+                            </DialogTrigger>
+
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-3">
+                                  <Image
+                                    src={agent.logo}
+                                    alt={agent.name}
+                                    width={40}
+                                    height={40}
+                                  />
+                                  {agent.name}
+                                </DialogTitle>
+
+                                <DialogDescription className="mt-4 whitespace-pre-line text-sm">
+                                  {agent.description}
+                                </DialogDescription>
+                              </DialogHeader>
+                            </DialogContent>
+                          </Dialog>
+                        </CardContent>
+
+
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
