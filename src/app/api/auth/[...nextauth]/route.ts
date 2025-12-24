@@ -11,7 +11,7 @@ interface LoginData {
 }
 
 export const authOptions: NextAuthOptions = {
-  useSecureCookies: true,
+  // useSecureCookies: true,
   providers: [
     
     GoogleProvider({
