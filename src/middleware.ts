@@ -6,7 +6,9 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const { pathname } = req.nextUrl
   const url = req.nextUrl
-
+  console.log('host:', req.headers.get('host'))
+  console.log('cookie:', req.headers.get('cookie'))
+  
   // Aturan redirect dalam bentuk array
   const redirects = [
     {

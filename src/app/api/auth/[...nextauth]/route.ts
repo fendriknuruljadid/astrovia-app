@@ -119,6 +119,19 @@ export const authOptions: NextAuthOptions = {
   //     return session;
   //   },
   // },
+  useSecureCookies: true,
+  cookies: {
+    sessionToken: {
+      name: "__Secure-next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        domain: ".astrovia.id", // 🔥 PENTING
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && account.access_token && user.email) {
