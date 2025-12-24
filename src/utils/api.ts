@@ -99,7 +99,7 @@ export const getWithSignature = async <T = unknown>(
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
   const appToken = await getAppToken(_req);
-  // console.log(appToken);
+  console.log(appToken);
   const response: AxiosResponse<T> = await apiClient.get(url, {
     headers: {
       "X-Timestamp": timestamp,
@@ -109,7 +109,7 @@ export const getWithSignature = async <T = unknown>(
     },
     params,
   });
-
+  console.log(response);
   return response.data;
 };
 

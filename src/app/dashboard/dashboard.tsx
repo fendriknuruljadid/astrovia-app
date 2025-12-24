@@ -64,8 +64,10 @@ export default function DashboardPage() {
   const fetchAgents = async () => {
     try {
       const res = await fetch("/api/proxy/agents")
+      console.log(res);
       const json: ApiResponse<Agent[]> = await res.json()
-  
+      console.log(json);
+      
       if (!json.status) throw new Error(json.message)
     
       setAgents(json.data ?? [])

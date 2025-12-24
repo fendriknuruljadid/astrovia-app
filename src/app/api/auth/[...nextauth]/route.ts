@@ -119,7 +119,6 @@ export const authOptions: NextAuthOptions = {
   //     return session;
   //   },
   // },
-  useSecureCookies: true,
   cookies: {
     sessionToken: {
       name: "__Secure-next-auth.session-token",
