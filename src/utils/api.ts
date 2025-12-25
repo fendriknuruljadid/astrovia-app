@@ -2,7 +2,8 @@ import axios, { AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
 import { getSession } from "next-auth/react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 // ============================
 // Ambil SECRET untuk signature
