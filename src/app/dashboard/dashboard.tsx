@@ -41,8 +41,6 @@ interface Agent {
   expired_at: string | null
 }
 
-
-
 const AgentSkeleton = () => (
   <Card className="dark:bg-gray-800 animate-pulse">
     <CardHeader className="items-center text-center gap-3">

@@ -4,7 +4,7 @@ import { getSession } from "next-auth/react";
 import { getServerSession } from "next-auth";
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { authOptions } from "@/lib/auth";
-
+import { getDeviceId } from "@/utils/device-id";
 // ============================
 // Ambil SECRET untuk signature
 // ============================
@@ -100,11 +100,14 @@ export const getWithSignature = async <T = unknown>(
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
   const appToken = await getAppToken(_req);
-  console.log(appToken);
+  // console.log(appToken);
+  const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.get(url, {
+    
     headers: {
       "X-Timestamp": timestamp,
       "X-Signature": hmac,
+      "X-DeviceId": deviceId,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
     },
@@ -117,28 +120,6 @@ export const getWithSignature = async <T = unknown>(
 // ============================
 // POST request dengan signature
 // ============================
-// export const postWithSignature = async <T = unknown>(
-//   url: string,
-//   data: Record<string, unknown>,
-//   origin?: string,
-//   _req?: NextRequestLike
-// ): Promise<T> => {
-//   const { timestamp, hmac } = generateSignature();
-//   const appToken = await getAppToken(_req);
-
-//   const response: AxiosResponse<T> = await apiClient.post(url, data, {
-//     headers: {
-//       "X-Timestamp": timestamp,
-//       "X-Signature": hmac,
-//       "X-ORIGIN": origin ?? "",
-//       ...(appToken && { Authorization: `Bearer ${appToken}` }),
-//       "Content-Type": "application/json",
-//     },
-//   });
-
-//   return response.data;
-// };
-
 export const postWithSignature = async <T = unknown>(
   url: string,
   data: Record<string, unknown> | FormData,
@@ -151,10 +132,12 @@ export const postWithSignature = async <T = unknown>(
   // Deteksi apakah data = FormData
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
+  const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.post(url, data, {
     headers: {
       "X-Timestamp": timestamp,
       "X-Signature": hmac,
+      "X-DeviceId": deviceId,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }), //biarkan axios set otomatis kalau FormData
@@ -177,10 +160,12 @@ export const putWithSignature = async <T = unknown>(
   const appToken = await getAppToken(_req);
 
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.put(url, data, {
     headers: {
       "X-Timestamp": timestamp,
       "X-Signature": hmac,
+      "X-DeviceId": deviceId,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -203,10 +188,13 @@ export const patchWithSignature = async <T = unknown>(
   const appToken = await getAppToken(_req);
 
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  
+  const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.patch(url, data, {
     headers: {
       "X-Timestamp": timestamp,
       "X-Signature": hmac,
+      "X-DeviceId": deviceId,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -226,11 +214,12 @@ export const deleteWithSignature = async <T = unknown>(
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
   const appToken = await getAppToken(_req);
-
+  const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.delete(url, {
     headers: {
       "X-Timestamp": timestamp,
       "X-Signature": hmac,
+      "X-DeviceId": deviceId,
       "X-ORIGIN": origin ?? "",
       ...(appToken && { Authorization: `Bearer ${appToken}` }),
     },

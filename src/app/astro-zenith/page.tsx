@@ -16,6 +16,7 @@ import {
   SidebarTrigger,
 } from "@/app/components/ui/sidebar"
 import { Clock, FileVideo, SquareScissorsIcon } from "lucide-react"
+import AutoLogout from "../autologout"
 
 /* =========================================================
    HELPERS
@@ -86,7 +87,8 @@ const stats = [
 ========================================================= */
 export default function Page() {
   return (
-    <SidebarProvider>
+    <AutoLogout>
+      <SidebarProvider>
       <AppSidebar />
 
       <SidebarInset>
@@ -196,5 +198,7 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </AutoLogout>
+    
   )
 }

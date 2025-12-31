@@ -1,14 +1,27 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+// import { randomUUID } from 'crypto'
 
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const { pathname } = req.nextUrl
   const url = req.nextUrl
-  console.log('host:', req.headers.get('host'))
-  console.log('cookie:', req.headers.get('cookie'))
-  
+  const deviceId = req.cookies.get('device_id')?.value
+
+  if (!deviceId) {
+    const res = NextResponse.next()
+
+    res.cookies.set('device_id', crypto.randomUUID(), {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+    })
+
+    return res
+  }
+
   // Aturan redirect dalam bentuk array
   const redirects = [
     {
