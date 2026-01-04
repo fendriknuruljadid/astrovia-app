@@ -34,6 +34,10 @@ export async function middleware(req: NextRequest) {
       condition: () => pathname.startsWith('/dashboard') && !token,
       target: '/',
     },
+    {
+      condition: () => pathname.startsWith('/astro-zenith') && !token,
+      target: '/',
+    },
   ]
 
   // Jalankan aturan redirect pertama yang cocok
@@ -60,6 +64,7 @@ export const config = {
     '/', 
     '/log-in',
     '/astro-nova/:path*', 
+    '/astro-zenith/:path*', 
     '/dashboard/:path*'
   ],
 }
