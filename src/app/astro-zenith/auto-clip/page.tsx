@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-
+import { Skeleton } from "@/app/components/ui/skeleton"
 import { AppSidebar } from "@/app/components/layout/app-sidebar-zenith"
 import {
   Breadcrumb,
@@ -19,12 +19,21 @@ import {
 } from "@/app/components/ui/sidebar"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
-
 import {
   Upload,
   Link as LinkIcon,
   Scissors,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/app/components/ui/dialog"
+import { useRouter } from "next/navigation"
+
 
 /* =========================================================
    TYPES
@@ -36,6 +45,58 @@ type Project = {
   thumbnail: string
   done: boolean
   created_at: string
+}
+
+type ProgressEvent = {
+  video_id: string
+  stage: string
+  percent: number
+  message: string
+}
+
+function ProgressOverlay({ progress }: { progress?: ProgressEvent }) {
+  if (!progress) return null
+
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-black/5">
+      <div className="w-4/5 rounded-xl border border-blue-400/50 bg-black/70 p-4 shadow-lg animate-pulse-border">
+        <p className="mb-2 text-center text-xs font-medium text-white capitalize">
+          {progress.stage.replace("_", " ")}
+        </p>
+
+        {/* Progress bar */}
+        <div className="relative h-2 overflow-hidden rounded-full bg-white/20">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all duration-300"
+            style={{ width: `${progress.percent}%` }}
+          />
+        </div>
+
+        <p className="mt-2 text-center text-xs text-white/80">
+          {progress.percent}%
+        </p>
+      </div>
+    </div>
+  )
+}
+
+
+function FailedOverlay({ message }: { message?: string }) {
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-black/60 backdrop-blur-sm overlay-failed">
+      <div className="text-center px-4">
+        <div className="mb-2 text-2xl">❌</div>
+        <p className="text-sm font-medium text-white">
+          Gagal memproses video
+        </p>
+        {message && (
+          <p className="mt-1 text-xs text-white/70 line-clamp-2">
+            {message}
+          </p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 /* =========================================================
@@ -56,6 +117,21 @@ function timeAgo(date: string) {
   return `${minutes} min ago`
 }
 
+function ProjectCardSkeleton() {
+  return (
+    <div className="rounded-xl border p-4 space-y-2">
+      {/* thumbnail */}
+      <Skeleton className="h-40 md:h-30 lg:h-30  w-full rounded-md" />
+
+      {/* title */}
+      <Skeleton className="h-3 w-full" />
+
+      {/* time */}
+      <Skeleton className="h-3 w-1/2" />
+    </div>
+  )
+}
+
 const isYoutubeUrl = (url: string) =>
   /youtube\.com|youtu\.be/.test(url)
 
@@ -63,12 +139,20 @@ const isYoutubeUrl = (url: string) =>
    PAGE
 ========================================================= */
 export default function Page() {
+  const router = useRouter()
+  const [openProcessingDialog, setOpenProcessingDialog] = useState(false)
+
+  const [projectsLoading, setProjectsLoading] = useState(true)
   const [url, setUrl] = useState("")
   const [file, setFile] = useState<File | null>(null)
 
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [progressMap, setProgressMap] = useState<
+    Record<string, ProgressEvent>
+  >({})
 
   const [ytMeta, setYtMeta] = useState<{
     title: string
@@ -84,19 +168,39 @@ export default function Page() {
   /* ================= FETCH PROJECT ================= */
   const fetchProjects = async () => {
     try {
+      setProjectsLoading(true)
+
       const res = await fetch("/api/proxy/astro-zenith/auto-clip")
       const json = await res.json()
+
       if (json?.status) {
         setProjects(json.data)
       }
     } catch {
       // silent
+    } finally {
+      setProjectsLoading(false)
     }
   }
-
+  const handleProjectClick = (project: Project) => {
+    if (project.done) {
+      router.push(`/astro-zenith/auto-clip/${project.id}`)
+    } else {
+      setOpenProcessingDialog(true)
+    }
+  }
+    
   useEffect(() => {
     fetchProjects()
   }, [])
+
+  useEffect(() => {
+    projects.forEach((p) => {
+      if (!p.done && !progressMap[p.id]) {
+        subscribeProgress(p.id)
+      }
+    })
+  }, [projects])
 
   /* ================= YOUTUBE OEMBED ================= */
   useEffect(() => {
@@ -140,6 +244,54 @@ export default function Page() {
     }
   }, [url])
 
+  const subscribeProgress = (videoId: string) => {
+    const ws = new WebSocket(
+      `ws://localhost:2003/ws/progress?video_id=${videoId}`
+    )
+  
+    // ws.onmessage = (e) => {
+    //   const data: ProgressEvent = JSON.parse(e.data)
+  
+    //   setProgressMap((prev) => ({
+    //     ...prev,
+    //     [data.video_id]: data,
+    //   }))
+    // }
+    ws.onmessage = async (e) => {
+      const data: ProgressEvent = JSON.parse(e.data)
+  
+      setProgressMap((prev) => ({
+        ...prev,
+        [data.video_id]: data,
+      }))
+  
+      // DONE / 100%
+      if (data.percent >= 100 || data.stage === "done") {
+        ws.close()
+  
+        // refresh project list → project.done jadi true
+        await fetchProjects()
+  
+        // optional: hapus progress dari map
+        setProgressMap((prev) => {
+          const copy = { ...prev }
+          delete copy[data.video_id]
+          return copy
+        })
+      }
+    }
+  
+    ws.onclose = () => {
+      console.log("WS closed", videoId)
+    }
+  
+    ws.onerror = () => {
+      console.log("WS error", videoId)
+      ws.close()
+    }
+  }
+  
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
     setError(null)
@@ -167,6 +319,10 @@ export default function Page() {
       if (result?.success === false) {
         setError(result?.message || "Server error.")
         return
+      }
+      const videoId = result?.data?.id
+      if (videoId) {
+        subscribeProgress(videoId)
       }
 
       // refresh project list
@@ -278,8 +434,8 @@ export default function Page() {
               <p className="mt-3 text-sm text-red-600">{error}</p>
             )}
 
-            <div className="mt-4 flex justify-end">
-              <Button disabled={!canSubmit || loading} onClick={handleSubmit}>
+            <div className="mt-4 flex justify-end ">
+              <Button className="cursor-pointer" disabled={!canSubmit || loading} onClick={handleSubmit}>
                 {loading ? "Processing..." : "Create Clip"}
               </Button>
             </div>
@@ -290,30 +446,56 @@ export default function Page() {
             <h2 className="mb-4 text-xl font-semibold">Project Video</h2>
 
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-5">
-              {projects.map((project) => (
-                <div key={project.id} className="rounded-xl border p-4">
-                  
-                  <img
-                    src={project.thumbnail}
-                    alt={project.video_title}
-                    className="h-50 md:h-40 lg:h-30 w-full rounded-md object-cover"
-                  />
-                  <p className="mt-2 text-xs text-muted-foreground truncate">
-                    {project.video_title}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Created {timeAgo(project.created_at)}
-                  </p>
-
-                  {!project.done && (
-                    <span className="text-xs text-yellow-600">
-                      Processing...
-                    </span>
-                  )}
-                </div>
+            {projectsLoading &&
+              Array.from({ length: 5 }).map((_, i) => (
+                <ProjectCardSkeleton key={i} />
               ))}
+             {!projectsLoading && projects.map((project) => {
+                const progress = progressMap[project.id]
+                const isFailed = progress?.stage === "failed"
 
-              {projects.length === 0 && (
+                return (
+                  <div
+                    key={project.id}
+                    onClick={() => handleProjectClick(project)}
+                    className="cursor-pointer rounded-xl border p-4"
+                  >
+                    {/* THUMBNAIL WRAPPER */}
+                    <div className="relative overflow-hidden rounded-md">
+                      <img
+                        src={project.thumbnail}
+                        alt={project.video_title}
+                        className="h-50 md:h-40 lg:h-30 w-full object-cover"
+                      />
+                      {/* PROGRESS OVERLAY (HANYA GAMBAR) */}
+                      {!project.done &&
+                        progress &&
+                        progress.percent < 100 &&
+                        progress.stage !== "done" &&
+                        progress.stage !== "failed" && (
+                          <ProgressOverlay progress={progress} />
+                        )}
+
+                      {/* FAILED OVERLAY (HANYA GAMBAR) */}
+                      {!project.done && isFailed && (
+                        <FailedOverlay message={progress?.message} />
+                      )}
+                    </div>
+
+                    {/* INFO (TIDAK KETUTUP) */}
+                    <p className="mt-2 text-xs text-muted-foreground truncate">
+                      {project.video_title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Created {timeAgo(project.created_at)}
+                    </p>
+                  </div>
+                )
+              })}
+
+
+
+              {!projectsLoading && projects.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   Belum ada project video.
                 </p>
@@ -321,6 +503,24 @@ export default function Page() {
             </div>
           </div>
         </div>
+        <Dialog open={openProcessingDialog} onOpenChange={setOpenProcessingDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Video masih diproses</DialogTitle>
+              <DialogDescription>
+                Video ini belum selesai diproses.  
+                Silakan tunggu hingga status selesai sebelum dibuka.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter>
+              <Button className="cursor-pointer" onClick={() => setOpenProcessingDialog(false)}>
+                Mengerti
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </SidebarInset>
     </SidebarProvider>
   )

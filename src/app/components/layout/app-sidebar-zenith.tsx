@@ -38,7 +38,7 @@ const data = {
     },
     
     {
-      title: "Auto Clip",
+      title: "Auto Clips",
       url: "/astro-zenith/auto-clip",
       icon: Sparkles,
       
