@@ -54,6 +54,7 @@ export const authOptions: NextAuthOptions = {
     
         token.appToken = result.data.access_token.AccessToken;
         token.refreshToken = result.data.access_token.RefreshToken;
+        // token.expired = Date.now() + 10_000;
         token.expired = Date.now() + result.data.access_token.ExpiresIn * 1000;
       }
       return token;
@@ -63,8 +64,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+
   events: {
     async signOut({ token }) {
+      console.log("SIGN OUT TOKEN : "+token.refreshToken);
       if (!token?.refreshToken) return;
   
       try {
@@ -74,6 +77,7 @@ export const authOptions: NextAuthOptions = {
             refresh_token: token.refreshToken,
           }
         );
+        
       } catch {
         // ga masalah kalau gagal
       }

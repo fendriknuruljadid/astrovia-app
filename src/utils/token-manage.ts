@@ -4,7 +4,7 @@ import { encode } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 import type { ApiResponse } from "@/types/api";
-import {  postWithSignature } from "@/utils/api";
+import { cookies } from "next/headers";
 import { postPublic } from "./api-public";
 
 interface LoginData {
@@ -42,11 +42,16 @@ interface LoginData {
   
     // token masih valid
     if (Date.now() < auth.expired - 60_000) {
+      console.log("[AUTH] token still valid");
       return auth.appToken;
     }
   
     // single-flight refresh (anti race condition)
+    console.log("[AUTH] APP TOKEN "+auth.appToken);
+    console.log("[AUTH] Refresh "+refreshing);
     if (!refreshing) {
+      console.log("[AUTH] token expired → refreshing");
+      console.log("[AUTH] refresh token "+auth.refreshToken);
       refreshing = refreshAppToken(req, auth.refreshToken).finally(
         () => (refreshing = null)
       );
@@ -60,11 +65,11 @@ interface LoginData {
     req: NextRequest,
     refreshToken: string
   ): Promise<string> {
+    console.log("[AUTH] Result Refresh "+refreshToken);
     const result = await postPublic<ApiResponse<LoginData>>(
       `${process.env.API_URL}/auth/refresh-token`,
       { refresh_token: refreshToken }
     );
-  
     if (!result?.data?.access_token) {
       throw new Error("RefreshFailed");
     }
@@ -99,5 +104,12 @@ interface LoginData {
       secret: process.env.NEXTAUTH_SECRET!,
     });
   
-    // cookies handled below
+    const cookieStore = await cookies();
+  
+    cookieStore.set("next-auth.session-token", newJwt, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
   }

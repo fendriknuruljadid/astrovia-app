@@ -3,6 +3,7 @@ import CryptoJS from "crypto-js";
 import { getDeviceId } from "@/utils/device-id";
 import { getValidAppToken } from "./token-manage";
 import { NextRequest } from "next/server";
+
 // ============================
 // Ambil SECRET untuk signature
 // ============================
@@ -21,34 +22,6 @@ export const generateSignature = (): { timestamp: string; hmac: string } => {
   return { timestamp, hmac };
 };
 
-// Cek apakah dijalankan di server
-const isServer = typeof window === "undefined";
-
-// Definisikan tipe req optional
-type NextRequestLike = {
-  headers?: Record<string, string>;
-  [key: string]: unknown;
-};
-
-
-// Ambil appToken dari session
-// export const getAppToken = async (_req?: NextRequestLike): Promise<string | undefined> => {
-//   try {
-//     // if (isServer) {
-//       const session = await getServerSession(authOptions);
-//       return session?.appToken ?? undefined;
-//     // } else {
-//     //   const session = await getSession();
-//     //   return session?.appToken ?? undefined;
-//     // }
-//   } catch (error) {
-//     console.error("❌ Failed to get appToken:", error);
-//     return undefined;
-//   }
-// };
-
-
-
 // ============================
 // Axios instance + interceptor
 // ============================
@@ -58,12 +31,12 @@ const apiClient = axios.create({
 
 apiClient.interceptors.response.use(
   (response) => {
-    // ✅ Jika respons sukses, langsung return data
+    // Jika respons sukses, langsung return data
     return response;
   },
   (error) => {
     const data = error.response?.data;
-    // ✅ Kalau server kirim JSON error, jangan lempar Error — return response palsu dengan data server
+    // Kalau server kirim JSON error, jangan lempar Error — return response palsu dengan data server
     if (data && typeof data === "object") {
       return Promise.resolve({
         ...error.response,
@@ -71,7 +44,7 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // ✅ Kalau tidak ada data dari server, baru lempar error jaringan
+    // Kalau tidak ada data dari server, baru lempar error jaringan
     const message =
       error.message || "A connection error occurred while contacting the server.";
     console.error("[API ERROR]", message);
@@ -115,7 +88,7 @@ export const getWithSignature = async <T = unknown>(
     },
     params,
   });
-  console.log(response);
+  // console.log(response);
   return response.data;
 };
 
@@ -146,7 +119,7 @@ export const postWithSignature = async <T = unknown>(
       ...(isFormData ? {} : { "Content-Type": "application/json" }), //biarkan axios set otomatis kalau FormData
     },
   });
-  console.log(response);
+  // console.log(response);
   return response.data;
 };
 
@@ -160,7 +133,6 @@ export const putWithSignature = async <T = unknown>(
   origin?: string,
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  // const appToken = await getAppToken(_req);
   const appToken = await getValidAppToken(req);
 
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
@@ -189,7 +161,6 @@ export const patchWithSignature = async <T = unknown>(
   origin?: string,
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  // const appToken = await getAppToken(_req);
   const appToken = await getValidAppToken(req);
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
   
@@ -217,7 +188,6 @@ export const deleteWithSignature = async <T = unknown>(
   origin?: string,
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  // const appToken = await getAppToken(_req);
   const appToken = await getValidAppToken(req);
   const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.delete(url, {
