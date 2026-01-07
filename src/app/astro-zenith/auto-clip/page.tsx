@@ -11,6 +11,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/app/components/ui/breadcrumb"
+
+import {
+  Smartphone,
+  Square,
+  RectangleHorizontal,
+  Crop,
+  AlignVerticalJustifyCenter,
+} from "lucide-react"
+
 import { Separator } from "@/app/components/ui/separator"
 import {
   SidebarInset,
@@ -24,6 +33,15 @@ import {
   Link as LinkIcon,
   Scissors,
 } from "lucide-react"
+import { Maximize, Sparkles } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select"
+import { Card } from "@/app/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -33,7 +51,7 @@ import {
   DialogFooter,
 } from "@/app/components/ui/dialog"
 import { useRouter } from "next/navigation"
-
+import { CaptionPreset,CAPTION_PRESETS } from "./preset"
 
 /* =========================================================
    TYPES
@@ -53,6 +71,14 @@ type ProgressEvent = {
   percent: number
   message: string
 }
+
+
+
+type AspectRatio = "9:16" | "1:1" | "4:3"
+type ResizeMode = "preserve" | "crop" | "tiktok_center" | "smooth_crop"
+type CaptionPosition = "bottom" | "center" | "top"
+
+
 
 function ProgressOverlay({ progress }: { progress?: ProgressEvent }) {
   if (!progress) return null
@@ -139,6 +165,11 @@ const isYoutubeUrl = (url: string) =>
    PAGE
 ========================================================= */
 export default function Page() {
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16")
+  const [resizeMode, setResizeMode] = useState<ResizeMode>("crop")
+  const [captionPosition, setCaptionPosition] =
+  useState<CaptionPosition>("bottom")
+
   const router = useRouter()
   const [openProcessingDialog, setOpenProcessingDialog] = useState(false)
 
@@ -249,14 +280,6 @@ export default function Page() {
       `ws://localhost:2003/ws/progress?video_id=${videoId}`
     )
   
-    // ws.onmessage = (e) => {
-    //   const data: ProgressEvent = JSON.parse(e.data)
-  
-    //   setProgressMap((prev) => ({
-    //     ...prev,
-    //     [data.video_id]: data,
-    //   }))
-    // }
     ws.onmessage = async (e) => {
       const data: ProgressEvent = JSON.parse(e.data)
   
@@ -303,17 +326,42 @@ export default function Page() {
 
     try {
       setLoading(true)
-
+      const payload = JSON.stringify({
+        video_url: url,
+        video_title: ytMeta?.title,
+        thumbnail: ytMeta?.thumbnail,
+        output_type : "auto-clip",
+        aspect_ratio: aspectRatio,
+        resize_mode:
+          aspectRatio === "9:16"
+            ? resizeMode              
+            : null,
+        caption_preset: selectedPreset.type === "none"
+          ? {
+              preset_name: "none",
+              position: "none",
+            }
+          : selectedPreset.type === "standard"
+          ? {
+              preset_name: selectedPreset.name,
+              position: captionPosition,
+            }
+          : {
+              preset_name: "custom",
+              position: captionPosition,
+              preset_detail: {
+                preset_parent: selectedPreset.presetParent,
+                fontFamily: "fontname",
+                fontSize: "20px",
+              },
+            },
+      });
+      // console.log(payload);
       const res = await fetch("/api/proxy/astro-zenith/auto-clip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          video_url: url,
-          video_title: ytMeta?.title,
-          thumbnail: ytMeta?.thumbnail,
-        }),
+        body: payload
       })
-
       const result = await res.json()
 
       if (result?.success === false) {
@@ -338,7 +386,8 @@ export default function Page() {
       setLoading(false)
     }
   }
-
+  const [selectedPreset, setSelectedPreset] =
+  useState<CaptionPreset>(CAPTION_PRESETS[0])
   /* ================= RENDER ================= */
   return (
     <SidebarProvider>
@@ -413,6 +462,8 @@ export default function Page() {
             )}
 
             {ytMeta && (
+              <>
+
               <div className="mt-4 flex gap-4 rounded-lg border bg-muted/40 p-3">
                 <img
                   src={ytMeta.thumbnail}
@@ -428,6 +479,233 @@ export default function Page() {
                   </span>
                 </div>
               </div>
+              <div className="mt-6 grid gap-4 lg:grid-cols-3 ">
+                {/* ================= ASPECT RATIO ================= */}
+                <div>
+                  <p className="mb-2 text-sm font-semibold">
+                    Aspect Ratio <span className="text-xs text-muted-foreground">(Clips Output)</span>
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setAspectRatio("9:16")}
+                      className={`cursor-pointer flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition
+                        ${
+                          aspectRatio === "9:16"
+                            ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                            : "hover:bg-muted"
+                        }`}
+                    >
+                      <Smartphone className="h-4 w-4" />
+                      9:16
+                    </button>
+
+                    <button
+                      onClick={() => setAspectRatio("1:1")}
+                      className={`cursor-pointer flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition
+                        ${
+                          aspectRatio === "1:1"
+                            ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                            : "hover:bg-muted"
+                        }`}
+                    >
+                      <Square className="h-4 w-4" />
+                      1:1
+                    </button>
+
+                    <button
+                      onClick={() => setAspectRatio("4:3")}
+                      className={`cursor-pointer flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition
+                        ${
+                          aspectRatio === "4:3"
+                            ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                            : "hover:bg-muted"
+                        }`}
+                    >
+                      <RectangleHorizontal className="h-4 w-4" />
+                      4:3
+                    </button>
+                  </div>
+                </div>
+
+              {/* ================= RESIZE MODE (9:16 only) ================= */}
+               
+                 
+                <div>
+                <p className="mb-2 text-sm font-semibold flex items-center gap-2">
+                    <Crop className="h-4 w-4 text-muted-foreground" />
+                    Resize Mode
+                  </p>
+
+                  <Select
+                    value={resizeMode}
+                    onValueChange={(v) => setResizeMode(v as ResizeMode)}
+                    disabled={aspectRatio !== "9:16"}
+                  >
+                    <SelectTrigger className="w-full cursor-pointer ">
+                      <SelectValue placeholder="Select resize mode" />
+                    </SelectTrigger>
+                    
+
+                    <SelectContent>
+                      <SelectItem className="cursor-pointer" value="crop">
+                        <div className="flex items-center gap-2">
+                          <Scissors className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Crop <span className="text-xs text-muted-foreground">Crop edges to fit frame (default)</span></p>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem className="cursor-pointer" value="preserve">
+                        <div className="flex items-center gap-2">
+                          <Maximize className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Preserve <span className="text-xs text-muted-foreground"> Keep original framing</span></p>
+                            
+                          </div>
+                        </div>
+                      </SelectItem>
+
+                      
+                      <SelectItem className="cursor-pointer" value="tiktok_center">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">TikTok Center <span className="text-xs text-muted-foreground">Smart center focus</span></p>
+                          </div>
+                        </div>
+                      </SelectItem>
+
+                      <SelectItem className="cursor-pointer" value="smooth_crop">
+                        <div className="flex items-center gap-2">
+                          <Crop className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Smooth Crop <span className="text-xs text-muted-foreground"> Smooth dynamic cropping</span></p>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {aspectRatio !== "9:16" && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Available only for <span className="font-medium">9:16</span> aspect ratio
+                    </p>
+                  )}
+                </div>
+
+                {/* ================= CAPTION POSITION ================= */}
+                <div>
+                  <p className="mb-2 text-sm font-semibold flex items-center gap-2">
+                    <AlignVerticalJustifyCenter className="h-4 w-4 text-muted-foreground" />
+                    Caption Position
+                  </p>
+
+                  <div className="flex gap-2">
+                    {(["bottom", "center", "top"] as CaptionPosition[]).map((pos) => (
+                      <button
+                        key={pos}
+                        onClick={() => setCaptionPosition(pos)}
+                        className={`cursor-pointer rounded-md border px-3 py-2 text-xs font-medium capitalize transition
+                          ${
+                            captionPosition === pos
+                              ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                              : "hover:bg-muted"
+                          }`}
+                      >
+                        {pos}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                  <p className="mb-2 text-sm font-semibold">Caption Preset</p>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {CAPTION_PRESETS.map((preset) => (
+                     <button
+                     key={preset.name}
+                     onClick={() => setSelectedPreset(preset)}
+                     className={`group relative rounded-lg border p-2 text-left transition
+                       ${
+                         selectedPreset.name === preset.name
+                           ? "border-blue-500 ring-2 ring-blue-500/40"
+                           : "hover:border-muted-foreground/40"
+                       }`}
+                   >
+                     <div className="relative h-28 w-full overflow-hidden rounded-md bg-muted">
+                       {/* IMAGE */}
+                       {preset.previewImage && (
+                         <img
+                           src={preset.previewImage}
+                           alt={preset.label}
+                           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200
+                             ${
+                               selectedPreset.name === preset.name
+                                 ? "opacity-0"
+                                 : "opacity-100 group-hover:opacity-0"
+                             }`}
+                         />
+                       )}
+                   
+                       {/* VIDEO */}
+                       {preset.previewVideo && (
+                         <video
+                           src={preset.previewVideo}
+                           muted
+                           loop
+                           playsInline
+                           preload="none"
+                           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200
+                             ${
+                               selectedPreset.name === preset.name
+                                 ? "opacity-100"
+                                 : "opacity-0 group-hover:opacity-100"
+                             }`}
+                           ref={(el) => {
+                             if (!el) return
+                   
+                             if (selectedPreset.name === preset.name) {
+                               el.play().catch(() => {})
+                             } else {
+                               el.pause()
+                               el.currentTime = 0
+                             }
+                           }}
+                           onMouseEnter={(e) => {
+                             if (selectedPreset.name !== preset.name) {
+                               e.currentTarget.play().catch(() => {})
+                             }
+                           }}
+                           onMouseLeave={(e) => {
+                             if (selectedPreset.name !== preset.name) {
+                               e.currentTarget.pause()
+                               e.currentTarget.currentTime = 0
+                             }
+                           }}
+                         />
+                       )}
+                   
+                       {!preset.previewImage && !preset.previewVideo && (
+                         <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                           No Subtitle
+                         </div>
+                       )}
+                     </div>
+                   
+                     <p className="mt-2 text-xs font-medium">{preset.label}</p>
+                   </button>
+                   
+                    ))}
+                  </div>
+                </div>
+
+              
+              </>
+            
+              
             )}
 
             {error && (
@@ -463,7 +741,8 @@ export default function Page() {
                     {/* THUMBNAIL WRAPPER */}
                     <div className="relative overflow-hidden rounded-md">
                       <img
-                        src={project.thumbnail}
+                        // src={project.thumbnail}
+                        src={project.thumbnail || "/placeholder.png"}
                         alt={project.video_title}
                         className="h-50 md:h-40 lg:h-30 w-full object-cover"
                       />
