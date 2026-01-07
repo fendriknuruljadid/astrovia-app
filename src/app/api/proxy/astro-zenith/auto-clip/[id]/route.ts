@@ -11,6 +11,7 @@ export async function GET(
     const url = `${process.env.API_URL}/astro-zenith/auto-clip/${id}`;
     // console.log(url);
     const result = await getWithSignature<ApiResponse>(
+      req,
       url,
       {},
       "web-proxy"

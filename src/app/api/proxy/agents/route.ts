@@ -9,6 +9,7 @@ export async function GET(
 
     const url = `${process.env.API_URL}/agents`;
     const result = await getWithSignature<ApiResponse>(
+      req,
       url,
       {},
       "web-proxy"
@@ -33,11 +34,11 @@ export async function GET(
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const url = `${process.env.API_URL}/payments`;
-    const result = await postWithSignature<ApiResponse>(url, body, "web-proxy");
+    const result = await postWithSignature<ApiResponse>(req, url, body, "web-proxy");
 
     return NextResponse.json(result, {
       status: result?.code || 200,

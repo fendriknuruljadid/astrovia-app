@@ -1,10 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
-import { getSession } from "next-auth/react";
-import { getServerSession } from "next-auth";
-// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { authOptions } from "@/lib/auth";
 import { getDeviceId } from "@/utils/device-id";
+import { getValidAppToken } from "./token-manage";
+import { NextRequest } from "next/server";
 // ============================
 // Ambil SECRET untuk signature
 // ============================
@@ -32,21 +30,24 @@ type NextRequestLike = {
   [key: string]: unknown;
 };
 
+
 // Ambil appToken dari session
-export const getAppToken = async (_req?: NextRequestLike): Promise<string | undefined> => {
-  try {
-    if (isServer) {
-      const session = await getServerSession(authOptions);
-      return session?.appToken ?? undefined;
-    } else {
-      const session = await getSession();
-      return session?.appToken ?? undefined;
-    }
-  } catch (error) {
-    console.error("❌ Failed to get appToken:", error);
-    return undefined;
-  }
-};
+// export const getAppToken = async (_req?: NextRequestLike): Promise<string | undefined> => {
+//   try {
+//     // if (isServer) {
+//       const session = await getServerSession(authOptions);
+//       return session?.appToken ?? undefined;
+//     // } else {
+//     //   const session = await getSession();
+//     //   return session?.appToken ?? undefined;
+//     // }
+//   } catch (error) {
+//     console.error("❌ Failed to get appToken:", error);
+//     return undefined;
+//   }
+// };
+
+
 
 // ============================
 // Axios instance + interceptor
@@ -93,13 +94,14 @@ apiClient.interceptors.response.use(
 // GET request dengan signature
 // ============================
 export const getWithSignature = async <T = unknown>(
+  req: NextRequest,
   url: string,
   params?: Record<string, string | number | boolean>,
   origin?: string,
-  _req?: NextRequestLike
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  const appToken = await getAppToken(_req);
+  // const appToken = await getAppToken(_req);
+  const appToken = await getValidAppToken(req);
   // console.log(appToken);
   const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.get(url, {
@@ -121,13 +123,14 @@ export const getWithSignature = async <T = unknown>(
 // POST request dengan signature
 // ============================
 export const postWithSignature = async <T = unknown>(
+  req: NextRequest,
   url: string,
   data: Record<string, unknown> | FormData,
   origin?: string,
-  _req?: NextRequestLike
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  const appToken = await getAppToken(_req);
+  // const appToken = await getAppToken(_req);
+  const appToken = await getValidAppToken(req);
 
   // Deteksi apakah data = FormData
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
@@ -151,13 +154,14 @@ export const postWithSignature = async <T = unknown>(
 // PUT request dengan signature
 // ============================
 export const putWithSignature = async <T = unknown>(
+  req: NextRequest,
   url: string,
   data: Record<string, unknown> | FormData,
   origin?: string,
-  _req?: NextRequestLike
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  const appToken = await getAppToken(_req);
+  // const appToken = await getAppToken(_req);
+  const appToken = await getValidAppToken(req);
 
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
   const deviceId = await getDeviceId();
@@ -179,14 +183,14 @@ export const putWithSignature = async <T = unknown>(
 // PATCH request dengan signature
 // ============================
 export const patchWithSignature = async <T = unknown>(
+  req: NextRequest,
   url: string,
   data: Record<string, unknown> | FormData,
   origin?: string,
-  _req?: NextRequestLike
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  const appToken = await getAppToken(_req);
-
+  // const appToken = await getAppToken(_req);
+  const appToken = await getValidAppToken(req);
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
   
   const deviceId = await getDeviceId();
@@ -208,12 +212,13 @@ export const patchWithSignature = async <T = unknown>(
 // DELETE request dengan signature
 // ============================
 export const deleteWithSignature = async <T = unknown>(
+  req: NextRequest,
   url: string,
   origin?: string,
-  _req?: NextRequestLike
 ): Promise<T> => {
   const { timestamp, hmac } = generateSignature();
-  const appToken = await getAppToken(_req);
+  // const appToken = await getAppToken(_req);
+  const appToken = await getValidAppToken(req);
   const deviceId = await getDeviceId();
   const response: AxiosResponse<T> = await apiClient.delete(url, {
     headers: {
