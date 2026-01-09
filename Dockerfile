@@ -1,4 +1,4 @@
-FROM node:20.8-alpine AS builder
+FROM node:20.17-alpine AS builder
 WORKDIR /app
 
 RUN npm install -g npm@latest
@@ -7,7 +7,7 @@ COPY . .
 RUN npm install
 RUN npm run build
 
-FROM node:20.8-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 RUN npm install -g npm@latest
