@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20.8-alpine AS builder
 WORKDIR /app
 
 RUN npm install -g npm@latest
