@@ -7,7 +7,7 @@ COPY . .
 RUN npm install
 RUN npm run build
 
-FROM node:20-alpine
+FROM node:20.8-alpine
 WORKDIR /app
 
 RUN npm install -g npm@latest
