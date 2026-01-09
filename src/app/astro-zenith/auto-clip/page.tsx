@@ -277,7 +277,7 @@ export default function Page() {
 
   const subscribeProgress = (videoId: string) => {
     const ws = new WebSocket(
-      `ws://ws-zenith.astrovia.id/ws/progress?video_id=${videoId}`
+      `wss://ws-zenith.astrovia.id/ws/progress?video_id=${videoId}`
     )
   
     ws.onmessage = async (e) => {
