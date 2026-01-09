@@ -1,4 +1,4 @@
-FROM node:20.17-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 RUN apk update && apk upgrade --no-cache
 RUN npm install -g npm@latest
@@ -7,7 +7,7 @@ COPY . .
 RUN npm install
 RUN npm run build
 
-FROM node:22-alpine
+FROM node:24-alpine
 WORKDIR /app
 
 RUN npm install -g npm@latest
