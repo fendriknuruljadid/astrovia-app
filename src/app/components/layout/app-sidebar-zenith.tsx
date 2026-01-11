@@ -87,9 +87,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = {
     name: session?.user?.name ?? "User",
     email: session?.user?.email ?? "",
-    avatar: session?.user?.image ?? "/avatars/default.png",
+    avatar: session?.user?.image ?? "https://media.astrovia.id/avatars/default.png",
   }
-  console.log(user);
+  // console.log(user);
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
