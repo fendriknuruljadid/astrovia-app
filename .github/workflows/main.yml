@@ -30,6 +30,5 @@ jobs:
         tags: |
           fendriknj/astrovia-app:latest
           fendriknj/astrovia-app:${{ env.TAG }}
-        cache-from: type=registry,ref=fendriknj/astrovia-app:latest
-        cache-to: type=inline
+        no-cache: true
 
