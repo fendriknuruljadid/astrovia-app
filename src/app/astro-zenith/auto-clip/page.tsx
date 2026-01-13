@@ -18,6 +18,8 @@ import {
   RectangleHorizontal,
   Crop,
   AlignVerticalJustifyCenter,
+  Clock,
+  Timer,
 } from "lucide-react"
 
 import { Separator } from "@/app/components/ui/separator"
@@ -73,6 +75,32 @@ type ProgressEvent = {
 }
 
 
+type DurationPreset =
+  | "lt_30s"
+  | "lt_90s"
+  | "30_59s"
+  | "60_89s"
+  | "90s_3m"
+  | "3_5m"
+  | "5_10m"
+  | "10_15m"
+
+const DURATION_PRESETS: {
+  value: DurationPreset
+  label: string
+  hint: string
+  min: number
+  max: number
+}[] = [
+  { value: "lt_30s", label: "< 30s", hint: "15–30 seconds", min: 15, max: 30 },
+  { value: "lt_90s", label: "< 90s (Default)", hint: "15–90 seconds", min: 15, max: 90 },
+  { value: "30_59s", label: "30–59s", hint: "Medium shorts", min: 30, max: 59 },
+  { value: "60_89s", label: "60–89s", hint: "Long shorts", min: 60, max: 89 },
+  { value: "90s_3m", label: "90s – 3m", hint: "Short-form video", min: 90, max: 180 },
+  { value: "3_5m", label: "3 – 5 min", hint: "Mid-form", min: 180, max: 300 },
+  { value: "5_10m", label: "5 – 10 min", hint: "Longer content", min: 300, max: 600 },
+  { value: "10_15m", label: "10 – 15 min", hint: "Deep content", min: 600, max: 900 },
+]
 
 type AspectRatio = "9:16" | "1:1" | "4:3"
 type ResizeMode = "preserve" | "crop" | "tiktok_center" | "smooth_crop"
@@ -165,6 +193,10 @@ const isYoutubeUrl = (url: string) =>
    PAGE
 ========================================================= */
 export default function Page() {
+  const [durationPreset, setDurationPreset] = useState<DurationPreset>("lt_90s")
+  const selectedDuration = DURATION_PRESETS.find(
+    (d) => d.value === durationPreset
+  )
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16")
   const [resizeMode, setResizeMode] = useState<ResizeMode>("crop")
   const [captionPosition, setCaptionPosition] =
@@ -334,6 +366,7 @@ export default function Page() {
         thumbnail: ytMeta?.thumbnail,
         output_type : "auto-clip",
         aspect_ratio: aspectRatio,
+        duration_preset :selectedDuration,
         resize_mode:
           aspectRatio === "9:16"
             ? resizeMode              
@@ -357,6 +390,7 @@ export default function Page() {
                 fontSize: "20px",
               },
             },
+
       });
       // console.log(payload);
       const res = await fetch("/api/proxy/astro-zenith/auto-clip", {
@@ -481,7 +515,7 @@ export default function Page() {
                   </span>
                 </div>
               </div>
-              <div className="mt-6 grid gap-4 lg:grid-cols-3 ">
+              <div className="mt-6 grid gap-4 lg:grid-cols-4 ">
                 {/* ================= ASPECT RATIO ================= */}
                 <div>
                   <p className="mb-2 text-sm font-semibold">
@@ -620,6 +654,41 @@ export default function Page() {
                     ))}
                   </div>
                 </div>
+                <div>
+                  <p className="mb-2 text-sm font-semibold flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    Duration Output
+                  </p>
+
+                  <Select
+                    value={durationPreset}
+                    onValueChange={(v) => setDurationPreset(v as DurationPreset)}
+                  >
+                    <SelectTrigger className="w-full cursor-pointer">
+                      <SelectValue placeholder="Select duration range" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {DURATION_PRESETS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="cursor-pointer">
+                          <div className="flex items-start gap-2">
+                            <div>
+                              <p className="text-sm font-medium">{opt.label}</p>
+                              {/* <p className="text-xs text-muted-foreground">{opt.hint}</p> */}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {selectedDuration && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Min <span className="font-medium">{selectedDuration.min}s</span> · Max{" "}
+                      <span className="font-medium">{selectedDuration.max}s</span>
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="mt-4">
@@ -725,7 +794,7 @@ export default function Page() {
           <div>
             <h2 className="mb-4 text-xl font-semibold">Project Video</h2>
 
-            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
             {projectsLoading &&
               Array.from({ length: 5 }).map((_, i) => (
                 <ProjectCardSkeleton key={i} />
@@ -746,7 +815,7 @@ export default function Page() {
                         // src={project.thumbnail}
                         src={project.thumbnail || "/placeholder.png"}
                         alt={project.video_title}
-                        className="h-50 md:h-40 lg:h-30 w-full object-cover"
+                        className="h-50 md:h-40 lg:h-30 w-full object-cover rounded-md"
                       />
                       {/* PROGRESS OVERLAY (HANYA GAMBAR) */}
                       {!project.done &&
