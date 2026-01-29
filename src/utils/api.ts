@@ -88,7 +88,7 @@ export const getWithSignature = async <T = unknown>(
     },
     params,
   });
-  // console.log(response);
+  console.log(response);
   return response.data;
 };
 
@@ -109,6 +109,8 @@ export const postWithSignature = async <T = unknown>(
   const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
   const deviceId = await getDeviceId();
+  
+  console.log(deviceId);
   const response: AxiosResponse<T> = await apiClient.post(url, data, {
     headers: {
       "X-Timestamp": timestamp,
@@ -119,7 +121,7 @@ export const postWithSignature = async <T = unknown>(
       ...(isFormData ? {} : { "Content-Type": "application/json" }), //biarkan axios set otomatis kalau FormData
     },
   });
-  // console.log(response);
+  console.log(response);
   return response.data;
 };
 
