@@ -19,6 +19,7 @@ export async function GET(
         status: Number(result.code) || 200,
     });
   } catch (error: unknown) {
+    // console.log(error);
     const message =
       error instanceof Error ? error.message : "Proxy error";
 
