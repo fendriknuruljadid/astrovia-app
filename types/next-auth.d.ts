@@ -11,6 +11,9 @@ declare module "next-auth" {
     user?: {
       name?: string | null;
       email?: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
+      phone?: string | null;
       image?: string | null;
     } & DefaultSession["user"];
   }
@@ -29,6 +32,9 @@ declare module "next-auth/jwt" {
     appToken?: string;
     refreshToken?: string;
     expired?: number;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
   }
 }
 

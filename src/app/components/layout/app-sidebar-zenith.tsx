@@ -44,12 +44,12 @@ const data = {
       
     },
     
-    {
-      title: "Auto Caption",
-      url: "/astro-zenith/auto-caption",
-      icon: ClosedCaption,
+    // {
+    //   title: "Auto Caption",
+    //   url: "/astro-zenith/auto-caption",
+    //   icon: ClosedCaption,
       
-    },
+    // },
     
     // {
     //   title: "Seamless Video",

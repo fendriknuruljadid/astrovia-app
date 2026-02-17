@@ -110,7 +110,7 @@ export default function DashboardPage() {
       <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-400 p-6 text-white shadow-lg">
         <h1 className="text-2xl font-bold mb-2">👋 Selamat Datang di Astro Center</h1>
         <p className="text-base opacity-90">
-          Pilih agen AI favoritmu dan mulai petualangan cerdas bersama Astro Agent!
+          Kelola dan akses seluruh AI Agent Anda dalam satu tempat.
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Pilih Agen AI</CardTitle>
               <CardDescription>
-                Temui para agen cerdas Astro yang siap membantu kamu.
+              Pilih dan kelola agent sesuai kebutuhan workflow Anda.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Riwayat Pembayaran</CardTitle>
               <CardDescription>
-                Lihat semua transaksi dan langganan kamu di sini.
+                Lihat semua transaksi dan langganan anda di sini.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">

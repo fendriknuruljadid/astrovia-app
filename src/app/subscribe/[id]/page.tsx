@@ -1,87 +1,105 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { useParams } from "next/navigation"
-import { Button } from "@/app/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card"
-import { CheckIcon, ArrowLeftIcon } from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-export default function SubscribePage() {
-  // nanti bisa fetch detail agent by slug
-  const agent = {
-    name: "Astro Zenith",
-    description:
-      "Agen AI ini akan membantumu meningkatkan produktivitas, mempercepat workflow, dan menghasilkan output lebih optimal.",
-    price: "Rp 99.000 / bulan",
-    logo: "/agent-placeholder.png", // optional
-  }
-
+  const pricingData = [
+    {
+      id: "prc-01keyax41gqy3bfpmp3a38hn0e",
+      name: "Starter",
+      description: "Coba konsisten dengan fitur dasar.",
+      monthly_price: 89000,
+      yearly_price: 749000,
+      token_monthly: 2000,
+      duration: 250,
+    },
+    {
+      id: "prc-01keyax41jka7ja2s2zfq3pzzf",
+      name: "Creator",
+      description: "Pilihan terbaik untuk kreator aktif harian.",
+      monthly_price: 149000,
+      yearly_price: 1199000,
+      token_monthly: 6000,
+      duration: 750,
+      highlight: true, // best deal
+    },
+    {
+      id: "prc-01keyax41jewghxe2ka84hqc7j",
+      name: "Pro",
+      description: "Untuk agency dan scaling bisnis.",
+      monthly_price: 249000,
+      yearly_price: 1999000,
+      token_monthly: 15000,
+      duration: 1875,
+    },
+  ];
+  
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <Card className="max-w-md w-full shadow-lg">
-        <CardHeader className="text-center gap-4">
-          <Image
-            src={agent.logo}
-            alt={agent.name}
-            width={80}
-            height={80}
-            className="mx-auto"
-          />
+    <main className="min-h-screen bg-slate-50">
 
-          <CardTitle className="text-2xl">
-            Berlangganan {agent.name}
-          </CardTitle>
+      {/* ================= PRICING ================= */}
+      <section className="pt-16 px-6" id="pricing">
+        <div className="max-w-6xl mx-auto">
 
-          <CardDescription>
-            {agent.description}
-          </CardDescription>
-        </CardHeader>
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {pricingData.map((p) => (
+              <div
+                key={p.id}
+                className={`relative rounded-2xl border p-8 bg-white shadow-sm hover:shadow-lg transition
+                  ${p.highlight ? "border-lime-500 ring-2 ring-lime-300" : "border-slate-200"}`}
+              >
+                {p.highlight && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-lime-600 px-4 py-1 text-sm font-bold text-white">
+                    🔥 BEST DEAL
+                  </div>
+                )}
 
-        <CardContent className="space-y-6">
-          {/* Benefit */}
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-green-500" />
-              Akses penuh fitur AI
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-green-500" />
-              Unlimited request
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-green-500" />
-              Prioritas performa & stabil
-            </li>
-          </ul>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {p.name}
+                </h3>
 
-          {/* Harga */}
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Harga</p>
-            <p className="text-2xl font-bold">{agent.price}</p>
+                <p className="text-gray-600 mb-6">
+                  {p.description}
+                </p>
+
+                <div className="mb-6">
+                  <p className="text-4xl font-extrabold text-gray-900">
+                    Rp{p.monthly_price.toLocaleString("id-ID")}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    / bulan · {p.token_monthly.toLocaleString("id-ID")} token
+                  </p>
+                </div>
+
+                <ul className="mb-8 space-y-3 text-gray-700 text-sm">
+                  <li>✔ Hingga {p.duration} menit video / bulan</li>
+                  <li>✔ Subtitle otomatis</li>
+                  <li>✔ AI highlight selection</li>
+                  <li>✔ Export siap upload</li>
+                </ul>
+
+                <Link
+                  href={`/payment/${p.id}`}
+                  className={`block text-center rounded-xl py-3 font-semibold transition
+                    ${p.highlight
+                      ? "bg-lime-600 text-white hover:bg-lime-700"
+                      : "bg-gray-900 text-white hover:bg-gray-800"
+                    }`}
+                >
+                  Pilih Paket {p.name}
+                </Link>
+
+                <p className="mt-4 text-xs text-gray-500 text-center">
+                  Atau <span className="font-semibold">Rp{p.yearly_price.toLocaleString("id-ID")}</span> / tahun
+                </p>
+              </div>
+            ))}
           </div>
-
-          {/* Action */}
-          <div className="flex flex-col gap-3">
-            <Button className="w-full">
-              Lanjutkan Pembayaran
-            </Button>
-
-            <Button variant="outline" asChild>
-              <Link href="/dashboard" className="flex items-center gap-2 justify-center">
-                <ArrowLeftIcon className="w-4 h-4" />
-                Kembali ke Dashboard
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+        </div>
+      </section>
+    
+    </main>
+  );
 }

@@ -13,6 +13,12 @@ interface LoginData {
     RefreshToken: string,
     ExpiresIn: number
   };
+  user : {
+    email : string,
+    first_name : string,
+    last_name : string,
+    phone : string,
+  };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -77,6 +83,9 @@ export const authOptions: NextAuthOptions = {
             email: credentials.email,
             appToken: result.data.access_token.AccessToken,
             refreshToken: result.data.access_token.RefreshToken,
+            firstName: result.data.user.first_name,
+            lastName: result.data.user.last_name,
+            phone: result.data.user.phone,
             expired:
               Date.now() +
               result.data.access_token.ExpiresIn * 1000,
@@ -98,6 +107,10 @@ export const authOptions: NextAuthOptions = {
         token.appToken = (user as any).appToken;
         token.refreshToken = (user as any).refreshToken;
         token.expired = (user as any).expired;
+
+        token.firstName = (user as any).firstName;
+        token.lastName = (user as any).lastName;
+        token.phone = (user as any).phone;
       }
       
       if (account && user && account.provider === "google") {
@@ -120,13 +133,25 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = result.data.access_token.RefreshToken;
         // token.expired = Date.now() + 10_000;
         token.expired = Date.now() + result.data.access_token.ExpiresIn * 1000;
+
+        token.firstName = result.data.user.first_name;
+        token.lastName = result.data.user.last_name;
+        token.phone = result.data.user.phone;
       }
       return token;
     },
     
-    async session({ session }) {
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.email = token.email as string;
+        session.user.firstName = token.firstName as string;
+        session.user.lastName = token.lastName as string;
+        session.user.phone = token.phone as string;
+      }
+    
       return session;
-    },
+    }
+    
   },
 
   events: {
