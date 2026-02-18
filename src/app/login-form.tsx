@@ -62,7 +62,7 @@ export function LoginForm({
       console.log(data);
       if (data.data.has_password && data.data.is_verified) {
         router.push(`/log-in/password`)
-      } else if(!data.data.is_verified){
+      } else if(data.data.has_password && !data.data.is_verified){
         localStorage.setItem("otp_expired_at", data.data.otp_expired_at)
         router.push("/log-in/verification");
       }else {
