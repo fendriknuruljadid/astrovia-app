@@ -59,7 +59,7 @@ export function LoginForm({
 
       // 3. Routing berdasarkan exist
       sessionStorage.setItem("login_email", email)
-      console.log(data);
+      // console.log(data);
       if (data.data.has_password && data.data.is_verified) {
         router.push(`/log-in/password`)
       } else if(data.data.has_password && !data.data.is_verified){
