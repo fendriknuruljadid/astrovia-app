@@ -39,6 +39,8 @@ type Project = {
   thumbnail: string
   done: boolean
   created_at: string
+  
+  video_progress?: ProgressEvent
 }
 
 type ProgressEvent = {
@@ -171,7 +173,22 @@ export default function Page() {
       const json = await res.json()
 
       if (json?.status) {
+        const data: Project[] = json.data
         setProjects(json.data)
+        const initialProgress: Record<string, ProgressEvent> = {}
+
+        data.forEach((p) => {
+          if (!p.done && p.video_progress) {
+            initialProgress[p.id] = {
+              video_id: p.id,
+              stage: p.video_progress.stage,
+              percent: p.video_progress.percent,
+              message: p.video_progress.message,
+            }
+          }
+        })
+
+        setProgressMap(initialProgress)
       }
     } catch {
       // silent

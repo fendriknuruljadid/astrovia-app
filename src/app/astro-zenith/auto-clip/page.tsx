@@ -65,6 +65,7 @@ type Project = {
   thumbnail: string
   done: boolean
   created_at: string
+  video_progress?: ProgressEvent
 }
 
 type ProgressEvent = {
@@ -102,7 +103,8 @@ const DURATION_PRESETS: {
   { value: "10_15m", label: "10 – 15 min", hint: "Deep content", min: 600, max: 900 },
 ]
 
-type AspectRatio = "9:16" | "1:1" | "4:3"
+// type AspectRatio = "9:16" | "1:1" | "4:3"
+type AspectRatio = "9:16"
 type ResizeMode = "preserve" | "crop" | "tiktok_center" | "smooth_crop"
 type CaptionPosition = "bottom" | "center" | "top"
 
@@ -237,7 +239,22 @@ export default function Page() {
       const json = await res.json()
 
       if (json?.status) {
+        const data: Project[] = json.data
         setProjects(json.data)
+        const initialProgress: Record<string, ProgressEvent> = {}
+
+        data.forEach((p) => {
+          if (!p.done && p.video_progress) {
+            initialProgress[p.id] = {
+              video_id: p.id,
+              stage: p.video_progress.stage,
+              percent: p.video_progress.percent,
+              message: p.video_progress.message,
+            }
+          }
+        })
+
+        setProgressMap(initialProgress)
       }
     } catch {
       // silent
@@ -261,6 +278,7 @@ export default function Page() {
     projects.forEach((p) => {
       if (!p.done && !progressMap[p.id]) {
         subscribeProgress(p.id)
+        
       }
     })
   }, [projects])
@@ -535,7 +553,7 @@ export default function Page() {
                       <Smartphone className="h-4 w-4" />
                       9:16
                     </button>
-
+{/* 
                     <button
                       onClick={() => setAspectRatio("1:1")}
                       className={`cursor-pointer flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition
@@ -560,7 +578,7 @@ export default function Page() {
                     >
                       <RectangleHorizontal className="h-4 w-4" />
                       4:3
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
